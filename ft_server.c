@@ -1,56 +1,60 @@
-#include <signal.h>
-#include <stdio.h>
-#include "FT_PRINTF/ft_printf.h"
-#include "LIBFT/libft.h"
-#include <stdlib.h>
-//cc -Wall -Wextra -Werror -o server ft_server.c FT_PRINTF/ft_printf.c FT_PRINTF/ft_convert_base.c FT_PRINTF/ft_printf_utils.c LIBFT/ft_bzero.c 
+#include "minitlak.h"
 
-volatile sig_atomic_t byte = 0;
+volatile signalinfo_t	g_clientinfo;
 
-void signal_handler(int signum, siginfo_t *info, void *context)
+void	signal_handler(int signum, siginfo_t *info, void *context)
 {
-	volatile static sig_atomic_t i = 0;
-	volatile sig_atomic_t c;
-	
 	(void)context;
-	byte = byte << 1;
+	g_clientinfo.pid = info->si_pid;
 	if (signum == SIGUSR1)
-		byte = byte | 1;
-	if (++i == 8)
-	{
-		c = 0xff & byte;
-		if (c == '\0')
-		{
-			usleep(60);
-			kill(info->si_pid, SIGUSR2);
-		}
-		else
-			write(STDOUT_FILENO, (char *) &c, sizeof(char));
-		i = 0;
-		byte = 0;
-	}
+		g_clientinfo.signal_num = 1;
+	else if (signum == SIGUSR2)
+		g_clientinfo.signal_num = 0;
+}
+
+void	set_sigaction(struct sigaction *act)
+{
+	ft_bzero(act, sizeof(*act));
+	sigemptyset(&(act->sa_mask));
+	sigaddset(&(act->sa_mask), SIGUSR1);
+	sigaddset(&(act->sa_mask), SIGUSR2);
+	act->sa_flags = SA_SIGINFO;
+	act->sa_sigaction = signal_handler;
+	sigaction(SIGUSR1, act, NULL);
+	sigaction(SIGUSR2, act, NULL);
+}
+
+void	send_back_signal(int signum)
+{
 	usleep(60);
-	kill(info->si_pid, SIGUSR1);
+	kill(g_clientinfo.pid, signum);
 }
 
 int	main(void)
 {
 	struct sigaction	act;
+	char				byte;
+	size_t				i;
 
 	ft_printf("pid: %d\n", getpid());
-
-	sigemptyset(&act.sa_mask);
-	sigaddset(&act.sa_mask, SIGUSR1);
-	sigaddset(&act.sa_mask, SIGUSR2);
-
-	act.sa_flags = SA_SIGINFO;
-	act.sa_sigaction = signal_handler;
-
-	sigaction(SIGUSR1, &act, NULL);
-	sigaction(SIGUSR2, &act, NULL);
-
+	set_sigaction(&act);
+	byte = 0;
+	i = 0;
 	while (1)
+	{
 		(void)pause();
-
+		byte = byte << 1;
+		byte = byte | g_clientinfo.signal_num;
+		if (++i == 8)
+		{
+			if (byte == '\0')
+				send_back_signal(SIGUSR2);
+			else
+				write(STDOUT_FILENO, &byte, sizeof(char));
+			i = 0;
+			byte = 0;
+		}
+		send_back_signal(SIGUSR1);
+	}
 	return (0);
 }
