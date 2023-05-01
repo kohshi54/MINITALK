@@ -1,6 +1,18 @@
-#include "minitlak.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_server.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kyamaguc <kyamaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/01 17:10:47 by kyamaguc          #+#    #+#             */
+/*   Updated: 2023/05/01 17:15:27 by kyamaguc         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-volatile signalinfo_t	g_clientinfo;
+#include "minitalk.h"
+
+volatile t_signalinfo	g_clientinfo;
 
 static void	signal_handler(int signum, siginfo_t *info, void *context)
 {
