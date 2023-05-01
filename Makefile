@@ -2,10 +2,10 @@ NAME = minitalk
 NAME_CLIENT = client
 NAME_SERVER = server
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror
 
-SRCS_CLIENT = ft_client.c
-SRCS_SERVER = ft_server.c
+SRCS_CLIENT = ft_client.c ft_utils.c
+SRCS_SERVER = ft_server.c ft_utils.c
 
 OBJS_CLIENT = $(SRCS_CLIENT:%.c=%.o)
 OBJS_SERVER = $(SRCS_SERVER:%.c=%.o)

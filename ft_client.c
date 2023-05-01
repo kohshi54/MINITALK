@@ -1,6 +1,6 @@
 #include "minitlak.h"
 
-void	send_char(pid_t pid, int c)
+static void	send_char(pid_t pid, int c)
 {
 	ssize_t	i;
 
@@ -8,23 +8,25 @@ void	send_char(pid_t pid, int c)
 	while (0 <= i)
 	{
 		if (c & (1 << i))
-			kill(pid, SIGUSR1);
+			ft_kill(pid, SIGUSR1);
 		else
-			kill(pid, SIGUSR2);
-		pause();
-		usleep(60);
+			ft_kill(pid, SIGUSR2);
+		(void)pause();
 		i--;
 	}
 }
 
-void	send_str(pid_t pid, char *str)
+static void	send_str(pid_t pid, char *str)
 {
 	while (*str)
-		send_char(pid, *str++);
-	send_char(pid, '\0');
+	{
+		send_char(pid, *str);
+		str++;
+	}
+	send_char(pid, EOT);
 }
 
-void	signal_handler(int signum, siginfo_t *info, void *context)
+static void	signal_handler(int signum, siginfo_t *info, void *context)
 {
 	(void)info;
 	(void)context;
@@ -33,18 +35,6 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 		ft_printf("ok\n");
 		exit(EXIT_SUCCESS);
 	}
-}
-
-void	set_sigaction(struct sigaction *act)
-{
-	ft_bzero(act, sizeof(*act));
-	sigemptyset(&(act->sa_mask));
-	sigaddset(&(act->sa_mask), SIGUSR1);
-	sigaddset(&(act->sa_mask), SIGUSR2);
-	act->sa_flags = SA_SIGINFO;
-	act->sa_sigaction = signal_handler;
-	sigaction(SIGUSR1, act, NULL);
-	sigaction(SIGUSR2, act, NULL);
 }
 
 int	main(int argc, char *argv[])
@@ -57,7 +47,7 @@ int	main(int argc, char *argv[])
 		ft_printf("wrong argc");
 		return (1);
 	}
-	set_sigaction(&act);
+	set_sigaction(&act, signal_handler);
 	pid = ft_atoi(argv[1]);
 	send_str(pid, argv[2]);
 	return (0);
