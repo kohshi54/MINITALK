@@ -2,7 +2,7 @@ NAME = minitalk
 NAME_CLIENT = client
 NAME_SERVER = server
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -fsanitize=address
 
 SRCS_CLIENT = ft_client.c
 SRCS_SERVER = ft_server.c
